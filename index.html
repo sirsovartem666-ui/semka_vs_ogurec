@@ -93,13 +93,13 @@
     filter: drop-shadow(0 4px 4px rgba(0,0,0,0.5));
   }
 
-  /* === СМЕЩЕННЫЕ РУКИ СЕМКИ === */
-  #semka-arm-front { right: -45px; top: 45px; } /* Сдвинули правее (было -25px) */
-  #semka-arm-back { right: -5px; top: 30px; z-index: 5; transform: scale(0.8); filter: brightness(0.7); } /* Сдвинули правее (было 15px) */
+  /* Руки Семки */
+  #semka-arm-front { right: -45px; top: 45px; }
+  #semka-arm-back { right: -5px; top: 30px; z-index: 5; transform: scale(0.8); filter: brightness(0.7); }
 
-  /* === СМЕЩЕННЫЕ РУКИ ОГУРЦА === */
-  #boss-arm-front { left: -45px; top: 45px; transform: scaleX(-1); } /* Сдвинули левее */
-  #boss-arm-back { left: -5px; top: 30px; z-index: 5; transform: scale(-0.8, 0.8); filter: brightness(0.7); } /* Сдвинули левее */
+  /* Руки Огурца */
+  #boss-arm-front { left: -45px; top: 45px; transform: scaleX(-1); }
+  #boss-arm-back { left: -5px; top: 30px; z-index: 5; transform: scale(-0.8, 0.8); filter: brightness(0.7); }
 
   /* Анимация удара рукой */
   .punch-front #semka-arm-front {
@@ -159,6 +159,7 @@
     transition: width 0.3s;
   }
   #semka-health .health-fill { background: #00ff00; }
+  /* Полоска босса красная */
   #boss-health .health-fill { background: #ff0000; float: right; }
 
   .names {
@@ -331,8 +332,8 @@
     el: document.getElementById('cucumber-boss'),
     x: 580,
     y: GROUND_LEVEL,
-    hp: 100,
-    maxHp: 100,
+    hp: 200,      // <-- УВЕЛИЧИЛИ ХП В 2 РАЗА (было 100)
+    maxHp: 200,   // <-- МАКСИМУМ ТОЖЕ 200
     speed: 1.5,
     isAttacking: false,
     attackCooldown: 0
@@ -345,6 +346,7 @@
     document.getElementById('start-screen').classList.add('hidden');
     isGameRunning = true;
     updatePositions();
+    updateHealthBars(); // Сразу обновляем полоски при старте
     gameLoop();
   }
 
@@ -406,6 +408,7 @@
     const distance = Math.abs(semka.x - boss.x);
     if (distance < 160 && type !== 'special') {
       boss.hp -= damage;
+      if (boss.hp < 0) boss.hp = 0; // Защита от отрицательного ХП
       showHitEffect(boss.x, boss.y + 50, '💥');
       boss.el.classList.add('hurt');
       setTimeout(() => boss.el.classList.remove('hurt'), 200);
@@ -447,6 +450,7 @@
         
         if (hit && !boss.isAttacking) {
           boss.hp -= 15;
+          if (boss.hp < 0) boss.hp = 0;
           showHitEffect(boss.x, boss.y + 50, '💥');
           boss.el.classList.add('hurt');
           setTimeout(() => boss.el.classList.remove('hurt'), 200);
@@ -534,8 +538,12 @@
   }
 
   function updateHealthBars() {
-    document.getElementById('semka-health-fill').style.width = Math.max(0, (semka.hp / semka.maxHp) * 100) + '%';
-    document.getElementById('boss-health-fill').style.width = Math.max(0, (boss.hp / boss.maxHp) * 100) + '%';
+    // Считаем проценты (полоска босса будет уменьшаться медленнее, так как maxHp = 200)
+    const semkaPercent = Math.max(0, (semka.hp / semka.maxHp) * 100);
+    const bossPercent = Math.max(0, (boss.hp / boss.maxHp) * 100);
+    
+    document.getElementById('semka-health-fill').style.width = semkaPercent + '%';
+    document.getElementById('boss-health-fill').style.width = bossPercent + '%';
   }
 
   function showHitEffect(x, y, text) {
